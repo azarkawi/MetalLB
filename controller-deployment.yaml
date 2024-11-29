@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: metallb-system
+  name: controller
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: metallb
+      component: controller
+  template:
+    metadata:
+      labels:
+        app: metallb
+        component: controller
+    spec:
+      containers:
+      - name: controller
+        image: metallb/controller:v0.14.8
+        args: ["--port=7472"]
+        ports:
+        - containerPort: 7472
+        securityContext:
+          allowPrivilegeEscalation: false

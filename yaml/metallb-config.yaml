@@ -17,20 +17,21 @@ spec:
       containers:
       - name: speaker
         image: quay.io/metallb/speaker:v0.14.8
-        args: ["--port=7472"]
-        - "--node-name=$(NODE_NAME)"
+        args:
+          - "--port=7472"
+          - "--node-name=$(NODE_NAME)"
         env:
           - name: NODE_NAME
-           valueFrom:
-            fieldRef:
-              fieldPath: spec.nodeName
+            valueFrom:
+              fieldRef:
+                fieldPath: spec.nodeName  
         ports:
-        - containerPort: 7472
+          - containerPort: 7472
         securityContext:
           allowPrivilegeEscalation: false
       nodeSelector:
         kubernetes.io/os: linux
       tolerations:
-      - effect: NoSchedule
-        key: "node-role.kubernetes.io/master"
-        operator: Exists
+        - effect: NoSchedule
+          key: "node-role.kubernetes.io/master"
+          operator: Exists

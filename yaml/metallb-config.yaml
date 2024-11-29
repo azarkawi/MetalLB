@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: speaker
-        image: quay.io/metallb/speaker:v0.14.8
+        image: metallb/speaker:v0.13.10
         args: ["--port=7472"]
         ports:
         - containerPort: 7472

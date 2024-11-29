@@ -18,6 +18,12 @@ spec:
       - name: speaker
         image: quay.io/metallb/speaker:v0.14.8
         args: ["--port=7472"]
+        - "--node-name=$(NODE_NAME)"
+        env:
+          - name: NODE_NAME
+           valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
         ports:
         - containerPort: 7472
         securityContext:

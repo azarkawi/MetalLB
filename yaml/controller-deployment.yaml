@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: controller
-        image: quay.io/metallb/controller:v0.14.8
+        image: metallb/controller:v0.13.10
         args: ["--port=7472"]
         ports:
         - containerPort: 7472

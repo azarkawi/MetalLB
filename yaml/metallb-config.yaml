@@ -3,6 +3,9 @@ kind: DaemonSet
 metadata:
   namespace: metallb-system
   name: speaker
+  labels:
+    app: metallb
+    component: speaker
 spec:
   selector:
     matchLabels:
@@ -17,21 +20,16 @@ spec:
       containers:
       - name: speaker
         image: quay.io/metallb/speaker:v0.14.8
-        args:
-          - "--port=7472"
-          - "--node-name=$(NODE_NAME)"
-        env:
-          - name: NODE_NAME
-            valueFrom:
-              fieldRef:
-                fieldPath: spec.nodeName  
         ports:
-          - containerPort: 7472
+        - name: metrics
+          containerPort: 7472
+          protocol: TCP
         securityContext:
           allowPrivilegeEscalation: false
-      nodeSelector:
-        kubernetes.io/os: linux
-      tolerations:
-        - effect: NoSchedule
-          key: "node-role.kubernetes.io/master"
-          operator: Exists
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "100Mi"
+          limits:
+            cpu: "200m"
+            memory: "200Mi"

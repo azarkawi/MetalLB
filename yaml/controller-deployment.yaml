@@ -3,6 +3,9 @@ kind: Deployment
 metadata:
   namespace: metallb-system
   name: controller
+  labels:
+    app: metallb
+    component: controller
 spec:
   replicas: 1
   selector:
@@ -21,5 +24,13 @@ spec:
         args: ["--port=7472"]
         ports:
         - containerPort: 7472
+          name: metrics
         securityContext:
           allowPrivilegeEscalation: false
+        resources: 
+          requests:
+            cpu: "100m"
+            memory: "100Mi"
+          limits:
+            cpu: "200m"
+            memory: "200Mi"

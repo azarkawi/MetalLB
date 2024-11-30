@@ -1,0 +1,136 @@
+# Namespace for MetalLB
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: metallb-system
+---
+# Service Account for Controller
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  namespace: metallb-system
+  name: controller
+---
+# Service Account for Speaker
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  namespace: metallb-system
+  name: speaker
+---
+# RBAC Roles and Bindings for Controller
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: metallb-system:controller
+rules:
+- apiGroups: [""]
+  resources: ["services", "endpoints", "pods", "nodes"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["networking.k8s.io"]
+  resources: ["ingresses"]
+  verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: metallb-system:controller
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: metallb-system:controller
+subjects:
+- kind: ServiceAccount
+  name: controller
+  namespace: metallb-system
+---
+# RBAC Roles and Bindings for Speaker
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: metallb-system:speaker
+rules:
+- apiGroups: [""]
+  resources: ["services", "endpoints", "pods", "nodes"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: [""]
+  resources: ["services/status"]
+  verbs: ["update"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: metallb-system:speaker
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: metallb-system:speaker
+subjects:
+- kind: ServiceAccount
+  name: speaker
+  namespace: metallb-system
+---
+# Deployment for the MetalLB Controller
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: metallb-system
+  name: controller
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      component: controller
+  template:
+    metadata:
+      labels:
+        component: controller
+    spec:
+      serviceAccountName: controller
+      containers:
+      - name: controller
+        image: quay.io/metallb/controller:main
+        args:
+        - --port=7472
+        ports:
+        - name: http
+          containerPort: 7472
+        - name: metrics
+          containerPort: 7473
+---
+# DaemonSet for the MetalLB Speaker
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  namespace: metallb-system
+  name: speaker
+spec:
+  selector:
+    matchLabels:
+      component: speaker
+  template:
+    metadata:
+      labels:
+        component: speaker
+    spec:
+      serviceAccountName: speaker
+      containers:
+      - name: speaker
+        image: quay.io/metallb/speaker:main
+        ports:
+        - name: metrics
+          containerPort: 7472
+---
+# ConfigMap to define IP address pool
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: metallb-system
+  name: config
+data:
+  config: |
+    address-pools:
+    - name: default
+      protocol: layer2
+      addresses:
+      - 192.168.151.220-192.168.151.234
